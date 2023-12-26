@@ -1,0 +1,95 @@
+// Create
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Post;
+use Illuminate\Http\Request;
+
+class PostController extends Controller
+{
+    public function store(Request $request)
+    {
+        $post = new Post();
+        $post->title = $request->input('title');
+        $post->content = $request->input('content');
+        $post->save();
+
+        return redirect()->route('posts.index');
+    }
+}
+
+// update
+// Di dalam controller
+public function update(Request $request, $id)
+{
+    // Validasi data input
+    $this->validate($request, [
+        'title' => 'required|string|max:255',
+        'content' => 'required|string',
+    ]);
+
+    // Ambil data post berdasarkan id
+    $post = Post::find($id);
+
+    // Ubah data post
+    $post->title = $request->input('title');
+    $post->content = $request->input('content');
+
+    // Simpan perubahan
+    $post->save();
+
+    // Redirect ke halaman index
+    return redirect()->route('posts.index');
+}
+
+// delete
+// Di dalam controller
+public function destroy(Request $request, $id)
+{
+    // Validasi input
+    $this->validate($request, [
+        'id' => 'required|integer',
+    ]);
+
+    // Hapus post
+    $post = Post::find($id);
+    $post->delete();
+
+    // Kembali ke halaman index
+    return redirect()->route('posts.index');
+}
+
+// login
+// Di dalam controller
+public function login(Request $request)
+{
+    // Validasi input
+    $this->validate($request, [
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
+
+    // Cari pengguna berdasarkan email
+    $user = User::where('email', $request->input('email'))->first();
+
+    // Jika pengguna tidak ditemukan
+    if (!$user) {
+        return back()->withErrors([
+            'email' => 'Email tidak terdaftar',
+        ]);
+    }
+
+    // Jika password salah
+    if (!Hash::check($request->input('password'), $user->password)) {
+        return back()->withErrors([
+            'password' => 'Password salah',
+        ]);
+    }
+
+    // Login pengguna
+    Auth::login($user);
+
+    // Redirect ke halaman dashboard
+    return redirect()->route('dashboard');
+}
